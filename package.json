@@ -1,14 +1,14 @@
 {
-  "name": "create-vue",
-  "version": "3.0.0-beta.6",
-  "description": "An easy way to start a Vue project",
+  "name": "create-tampermonkey",
+  "version": "1.0.0",
+  "description": "An easy way to start a Tampermonkey UserScript",
   "type": "module",
   "bin": {
-    "create-vue": "outfile.cjs"
+    "create-tampermonkey": "outfile.cjs"
   },
   "files": [
     "outfile.cjs",
-    "template"
+    "template/vanilla"
   ],
   "engines": {
     "node": "^12.13.0 || ^14.0.0 || >= 16.0.0"
@@ -25,15 +25,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vuejs/create-vue.git"
+    "url": "git+https://github.com/curly210102/create-tampermonkey.git"
   },
   "keywords": [],
-  "author": "Haoqun Jiang <haoqunjiang+npm@gmail.com>",
+  "author": "Curly Brackets <water.curly@outlook.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/vuejs/create-vue/issues"
+    "url": "https://github.com/curly210102/create-tampermonkey/issues"
   },
-  "homepage": "https://github.com/vuejs/create-vue#readme",
+  "homepage": "https://github.com/curly210102/create-tampermonkey#readme",
   "devDependencies": {
     "esbuild": "^0.12.29",
     "husky": "^7.0.2",
