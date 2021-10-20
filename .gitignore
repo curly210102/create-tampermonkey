@@ -1,6 +1,7 @@
 outfile.cjs
 outfile.cjs.map
 **/*.user.js
+yarn.lock
 
 # Logs
 
