@@ -3,6 +3,20 @@ import { defineConfig } from 'rollup'
 import userScriptHeader from 'rollup-plugin-tampermonkey-header'
 import pkg from './package.json'
 import path from 'path'
+import commonjs from '@rollup/plugin-commonjs'
+import babel from '@rollup/plugin-babel'
+import resolve from '@rollup/plugin-node-resolve'
+
+const commonConfigs = defineConfig({
+  plugins: [
+    commonjs(),
+    resolve(),
+    babel({
+      babelHelpers: 'bundled',
+      exclude: 'node_modules/**'
+    })
+  ]
+})
 
 function devConfigs() {
   let userScriptHeaderContent = []
@@ -20,6 +34,7 @@ function devConfigs() {
       exclude: 'dist'
     },
     plugins: [
+      ...commonConfigs.plugins,
       userScriptHeader({
         transformHeaderContent(items) {
           const newItems = items
@@ -89,7 +104,7 @@ function prodConfigs() {
       file: `${pkg.name ?? 'userscript'}.user.js`,
       format: 'iife'
     },
-    plugins: [userScriptHeader()]
+    plugins: [...commonConfigs.plugins, userScriptHeader()]
   })
 }
 
