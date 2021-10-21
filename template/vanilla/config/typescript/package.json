@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.15.0",
+    "@types/tampermonkey": "^4.0.5",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "typescript": "^4.4.4"
+  },
+  "scripts": {
+    "build": "tsc && rollup --config"
+  }
+}

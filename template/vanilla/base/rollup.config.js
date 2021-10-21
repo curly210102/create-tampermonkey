@@ -18,11 +18,16 @@ const mergeRollupConfigs = function (object, ...sources) {
     }
     Object.entries(source).forEach(([name, value]) => {
       if (name in object) {
-        if (value === null || value === undefined) return
+        if (value === null || value === undefined) {
+          return
+        }
         const objectValue = object[name]
         if (Array.isArray(objectValue)) {
-          object[name] = new Array(
-            new Set(...objectValue, ...(typeof value === 'object' ? Object.values(value) : [value]))
+          object[name] = Array.from(
+            new Set([
+              ...objectValue,
+              ...(typeof value === 'object' ? Object.values(value) : [value])
+            ])
           )
         } else if (isObject(objectValue)) {
           Object.assign(object[name], value)
@@ -43,7 +48,8 @@ const commonConfigs = defineConfig({
     nodeResolve(),
     babel({
       babelHelpers: 'bundled',
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
+      extensions: ['.js', '.jsx', '.ts', '.tsx']
     })
   ]
 })

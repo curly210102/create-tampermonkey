@@ -46,8 +46,9 @@ async function renderTemplate(src, dest) {
 
   const dirname = path.basename(path.dirname(src))
   if (
-    dirname === '.vscode' &&
-    ['extensions.json', 'settings.json'].includes(filename) &&
+    ((dirname === '.vscode' && ['extensions.json', 'settings.json'].includes(filename)) ||
+      filename === 'babel.config.json' ||
+      filename === '.eslintrc.json') &&
     fs.existsSync(dest)
   ) {
     const existing = JSON.parse(fs.readFileSync(dest))

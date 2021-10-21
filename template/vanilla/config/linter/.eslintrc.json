@@ -9,5 +9,5 @@
     "ecmaVersion": "latest"
   },
   "parser": "@babel/eslint-parser",
-  "ignorePatterns": ["node_modules/**", "dist"]
+  "ignorePatterns": ["/*", "!src"]
 }

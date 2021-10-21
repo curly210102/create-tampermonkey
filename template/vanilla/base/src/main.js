@@ -1,2 +1,2 @@
 alert('Hello World')
-GM_getValue()
+GM_log('Hello')

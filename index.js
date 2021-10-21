@@ -113,6 +113,14 @@ async function init() {
           validate: (dir) => isValidPackageName(dir) || 'Invalid package.json name'
         },
         {
+          name: 'needsTypeScript',
+          type: () => (isFeatureFlagsUsed ? null : 'toggle'),
+          message: 'Add TypeScript?',
+          initial: false,
+          active: 'Yes',
+          inactive: 'No'
+        },
+        {
           name: 'needsLinter',
           type: () => (isFeatureFlagsUsed ? null : 'toggle'),
           message: 'Add Linter & Formatter?',
@@ -120,14 +128,6 @@ async function init() {
           active: 'Yes',
           inactive: 'No'
         }
-        // {
-        //   name: 'needsTypeScript',
-        //   type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-        //   message: 'Add TypeScript?',
-        //   initial: false,
-        //   active: 'Yes',
-        //   inactive: 'No'
-        // },
         // {
         //   name: 'needsTests',
         //   type: () => (isFeatureFlagsUsed ? null : 'toggle'),
@@ -217,8 +217,14 @@ async function init() {
   if (needsTypeScript) {
     // rename all `.js` files to `.ts`
     // rename jsconfig.json to tsconfig.json
+    // replace rollup.config.js entry
+    const rollupPath = path.join(root, "rollup.config.js");
+    fs.writeFileSync(rollupPath, fs.readFileSync(rollupPath, {
+      encoding: "utf-8"
+    }).replace(/main\.js/g, "main.ts"));
+
     preOrderDirectoryTraverse(
-      root,
+      path.join(root, "src"),
       () => {},
       (filepath) => {
         if (filepath.endsWith('.js')) {
