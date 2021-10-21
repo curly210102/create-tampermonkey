@@ -3,20 +3,61 @@ import { defineConfig } from 'rollup'
 import userScriptHeader from 'rollup-plugin-tampermonkey-header'
 import pkg from './package.json'
 import path from 'path'
+import fs from 'fs'
 import commonjs from '@rollup/plugin-commonjs'
-import babel from '@rollup/plugin-babel'
-import resolve from '@rollup/plugin-node-resolve'
+import { nodeResolve } from '@rollup/plugin-node-resolve'
+import { babel } from '@rollup/plugin-babel'
+
+const isObject = (arg) => {
+  return Object.prototype.toString.call(arg) === '[object Object]'
+}
+const mergeRollupConfigs = function (object, ...sources) {
+  sources.forEach((source) => {
+    if (!isObject(source)) {
+      return
+    }
+    Object.entries(source).forEach(([name, value]) => {
+      if (name in object) {
+        if (value === null || value === undefined) return
+        const objectValue = object[name]
+        if (Array.isArray(objectValue)) {
+          object[name] = new Array(
+            new Set(...objectValue, ...(typeof value === 'object' ? Object.values(value) : [value]))
+          )
+        } else if (isObject(objectValue)) {
+          Object.assign(object[name], value)
+        } else {
+          object[name] = value
+        }
+      } else {
+        object[name] = value
+      }
+    })
+  })
+  return object
+}
 
 const commonConfigs = defineConfig({
   plugins: [
     commonjs(),
-    resolve(),
+    nodeResolve(),
     babel({
       babelHelpers: 'bundled',
       exclude: 'node_modules/**'
     })
   ]
 })
+
+const rollupConfigsPath = require('path').join(__dirname, 'rollup_configs')
+try {
+  const files = fs.readdirSync(rollupConfigsPath)
+  files.forEach(function (file) {
+    const configs = require('./rollup_configs/' + file).default
+    mergeRollupConfigs(commonConfigs, configs)
+  })
+} catch (err) {
+  console.log(err)
+}
 
 function devConfigs() {
   let userScriptHeaderContent = []

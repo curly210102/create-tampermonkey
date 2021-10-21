@@ -1,5 +1,4 @@
-import eslint from '@rollup/plugin-eslint'
-
-export default defineConfig({
+const eslint = require('@rollup/plugin-eslint')
+exports.default = {
   plugins: [eslint()]
-})
+}

@@ -13,14 +13,14 @@ import sortDependencies from './sortDependencies.js'
  * @param {string} src source filename to copy
  * @param {string} dest destination filename of the copy operation
  */
-function renderTemplate(src, dest) {
+async function renderTemplate(src, dest) {
   const stats = fs.statSync(src)
 
   if (stats.isDirectory()) {
     // if it's a directory, render its subdirectories and files recusively
     fs.mkdirSync(dest, { recursive: true })
     for (const file of fs.readdirSync(src)) {
-      renderTemplate(path.resolve(src, file), path.resolve(dest, file))
+      await renderTemplate(path.resolve(src, file), path.resolve(dest, file))
     }
     return
   }
@@ -33,6 +33,27 @@ function renderTemplate(src, dest) {
     const newPackage = JSON.parse(fs.readFileSync(src))
     const pkg = sortDependencies(deepMerge(existing, newPackage))
     fs.writeFileSync(dest, JSON.stringify(pkg, null, 2) + '\n')
+    return
+  }
+
+  if (filename === 'rollup.config.js' && fs.existsSync(dest)) {
+    dest = path.resolve(
+      path.dirname(dest),
+      'rollup_configs',
+      `${path.basename(path.dirname(src))}.js`
+    )
+  }
+
+  const dirname = path.basename(path.dirname(src))
+  if (
+    dirname === '.vscode' &&
+    ['extensions.json', 'settings.json'].includes(filename) &&
+    fs.existsSync(dest)
+  ) {
+    const existing = JSON.parse(fs.readFileSync(dest))
+    const newConfig = JSON.parse(fs.readFileSync(src))
+    const config = deepMerge(existing, newConfig)
+    fs.writeFileSync(dest, JSON.stringify(config, null, 2) + '\n')
     return
   }
 

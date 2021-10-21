@@ -43,16 +43,13 @@ async function init() {
   // possible options:
   // --default
   // --typescript / --ts
-  // --jsx
-  // --router / --vue-router
-  // --vuex
   // --with-tests / --tests / --cypress
+  // --lint
   // --force (for force overwriting)
   const argv = minimist(process.argv.slice(2), {
     alias: {
       typescript: ['ts'],
-      'with-tests': ['tests', 'cypress'],
-      router: ['vue-router']
+      'with-tests': ['tests', 'cypress']
     },
     // all arguments are treated as booleans
     boolean: true
@@ -61,11 +58,10 @@ async function init() {
   // if any of the feature flags is set, we would skip the feature prompts
   // use `??` instead of `||` once we drop Node.js 12 support
   const isFeatureFlagsUsed =
-    typeof (argv.default || argv.ts || argv.jsx || argv.router || argv.vuex || argv.tests) ===
-    'boolean'
+    typeof (argv.default || argv.ts || argv.tests || argv.lint) === 'boolean'
 
   let targetDir = argv._[0]
-  const defaultProjectName = !targetDir ? 'vue-project' : targetDir
+  const defaultProjectName = !targetDir ? 'my-userscript' : targetDir
 
   const forceOverwrite = argv.force
 
@@ -102,7 +98,7 @@ async function init() {
         },
         {
           name: 'overwriteChecker',
-          type: (prev, values = {}) => {
+          type: (_prev, values = {}) => {
             if (values.shouldOverwrite === false) {
               throw new Error(red('✖') + ' Operation cancelled')
             }
@@ -117,45 +113,29 @@ async function init() {
           validate: (dir) => isValidPackageName(dir) || 'Invalid package.json name'
         },
         {
-          name: 'needsTypeScript',
+          name: 'needsLinter',
           type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-          message: 'Add TypeScript?',
-          initial: false,
-          active: 'Yes',
-          inactive: 'No'
-        },
-        {
-          name: 'needsJsx',
-          type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-          message: 'Add JSX Support?',
-          initial: false,
-          active: 'Yes',
-          inactive: 'No'
-        },
-        {
-          name: 'needsRouter',
-          type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-          message: 'Add Vue Router for Single Page Application development?',
-          initial: false,
-          active: 'Yes',
-          inactive: 'No'
-        },
-        {
-          name: 'needsVuex',
-          type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-          message: 'Add Vuex for state management?',
-          initial: false,
-          active: 'Yes',
-          inactive: 'No'
-        },
-        {
-          name: 'needsTests',
-          type: () => (isFeatureFlagsUsed ? null : 'toggle'),
-          message: 'Add Cypress for testing?',
+          message: 'Add Linter & Formatter?',
           initial: false,
           active: 'Yes',
           inactive: 'No'
         }
+        // {
+        //   name: 'needsTypeScript',
+        //   type: () => (isFeatureFlagsUsed ? null : 'toggle'),
+        //   message: 'Add TypeScript?',
+        //   initial: false,
+        //   active: 'Yes',
+        //   inactive: 'No'
+        // },
+        // {
+        //   name: 'needsTests',
+        //   type: () => (isFeatureFlagsUsed ? null : 'toggle'),
+        //   message: 'Add Cypress for testing?',
+        //   initial: false,
+        //   active: 'Yes',
+        //   inactive: 'No'
+        // }
       ],
       {
         onCancel: () => {
@@ -173,10 +153,8 @@ async function init() {
   const {
     packageName = toValidPackageName(defaultProjectName),
     shouldOverwrite,
-    needsJsx = argv.jsx,
     needsTypeScript = argv.typescript,
-    needsRouter = argv.router,
-    needsVuex = argv.vuex,
+    needsLinter = argv.lint,
     needsTests = argv.tests
   } = result
   const root = path.join(cwd, targetDir)
@@ -196,49 +174,43 @@ async function init() {
   // work around the esbuild issue that `import.meta.url` cannot be correctly transpiled
   // when bundling for node and the format is cjs
   // const templateRoot = new URL('./template', import.meta.url).pathname
-  const templateRoot = path.resolve(__dirname, 'template')
-  const render = function render(templateName) {
+  const templateRoot = path.resolve(__dirname, 'template/vanilla')
+  const render = async function render(templateName) {
     const templateDir = path.resolve(templateRoot, templateName)
-    renderTemplate(templateDir, root)
+    await renderTemplate(templateDir, root)
   }
 
   // Render base template
-  render('base')
+  await render('base')
 
   // Add configs.
-  if (needsJsx) {
-    render('config/jsx')
-  }
-  if (needsRouter) {
-    render('config/router')
-  }
-  if (needsVuex) {
-    render('config/vuex')
+  if (needsLinter) {
+    await render('config/linter')
   }
   if (needsTests) {
-    render('config/cypress')
+    await render('config/cypress')
   }
   if (needsTypeScript) {
-    render('config/typescript')
+    await render('config/typescript')
   }
 
   // Render code template.
   // prettier-ignore
-  const codeTemplate =
-    (needsTypeScript ? 'typescript-' : '') +
-    (needsRouter ? 'router' : 'default')
-  render(`code/${codeTemplate}`)
+  // const codeTemplate =
+  //   (needsTypeScript ? 'typescript-' : '') +
+  //   ('default')
+  // render(`code/${codeTemplate}`)
 
   // Render entry file (main.js/ts).
-  if (needsVuex && needsRouter) {
-    render('entry/vuex-and-router')
-  } else if (needsVuex) {
-    render('entry/vuex')
-  } else if (needsRouter) {
-    render('entry/router')
-  } else {
-    render('entry/default')
-  }
+  // if (needsVuex && needsRouter) {
+  //   render('entry/vuex-and-router')
+  // } else if (needsVuex) {
+  //   render('entry/vuex')
+  // } else if (needsRouter) {
+  //   render('entry/router')
+  // } else {
+  //   render('entry/default')
+  // }
 
   // Cleanup.
 
@@ -256,11 +228,6 @@ async function init() {
         }
       }
     )
-
-    // Rename entry in `index.html`
-    const indexHtmlPath = path.resolve(root, 'index.html')
-    const indexHtmlContent = fs.readFileSync(indexHtmlPath, 'utf8')
-    fs.writeFileSync(indexHtmlPath, indexHtmlContent.replace('src/main.js', 'src/main.ts'))
   }
 
   if (!needsTests) {

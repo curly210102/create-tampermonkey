@@ -1,7 +1,3 @@
 {
-  "recommendations": [
-    "darxeal.tampermonkey-snippets",
-    "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
-  ]
+  "recommendations": ["darxeal.tampermonkey-snippets"]
 }
