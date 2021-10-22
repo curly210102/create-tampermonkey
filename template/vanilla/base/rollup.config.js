@@ -7,6 +7,8 @@ import fs from 'fs'
 import commonjs from '@rollup/plugin-commonjs'
 import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { babel } from '@rollup/plugin-babel'
+import json from '@rollup/plugin-json'
+import alias from '@rollup/plugin-alias'
 
 const isObject = (arg) => {
   return Object.prototype.toString.call(arg) === '[object Object]'
@@ -42,6 +44,7 @@ const mergeRollupConfigs = function (object, ...sources) {
   return object
 }
 
+const projectRootDir = path.resolve(__dirname)
 const commonConfigs = defineConfig({
   plugins: [
     commonjs(),
@@ -50,6 +53,15 @@ const commonConfigs = defineConfig({
       babelHelpers: 'bundled',
       exclude: 'node_modules/**',
       extensions: ['.js', '.jsx', '.ts', '.tsx']
+    }),
+    json(),
+    alias({
+      entries: [
+        {
+          find: '@',
+          replacement: path.resolve(projectRootDir, 'src')
+        }
+      ]
     })
   ]
 })

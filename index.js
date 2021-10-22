@@ -12,6 +12,7 @@ import renderTemplate from './utils/renderTemplate.js'
 import { postOrderDirectoryTraverse, preOrderDirectoryTraverse } from './utils/directoryTraverse.js'
 import generateReadme from './utils/generateReadme.js'
 import getCommand from './utils/getCommand.js'
+import deepMerge from './utils/deepMerge.js'
 
 function isValidPackageName(projectName) {
   return /^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(projectName)
@@ -223,14 +224,28 @@ async function init() {
       encoding: "utf-8"
     }).replace(/main\.js/g, "main.ts"));
 
+    const srcPath = path.join(root, "src");
     preOrderDirectoryTraverse(
-      path.join(root, "src"),
+      root,
       () => {},
       (filepath) => {
-        if (filepath.endsWith('.js')) {
+        if (path.dirname(filepath) === srcPath && filepath.endsWith('.js')) {
           fs.renameSync(filepath, filepath.replace(/\.js$/, '.ts'))
         } else if (path.basename(filepath) === 'jsconfig.json') {
-          fs.renameSync(filepath, filepath.replace(/jsconfig\.json$/, 'tsconfig.json'))
+          const tsconfigJSON = path.resolve(filepath, "../tsconfig.json");
+
+          if (fs.existsSync(tsconfigJSON)) {
+            const jsconfig = JSON.parse(fs.readFileSync(filepath, {
+              "encoding": "utf-8"
+            }));
+            const tsconfig = JSON.parse(fs.readFileSync(tsconfigJSON, {
+              "encoding": "utf-8"
+            }));
+            fs.writeFileSync(tsconfigJSON, JSON.stringify(deepMerge(jsconfig, tsconfig), null, 2) + '\n');
+            fs.unlinkSync(filepath);
+          } else {
+            fs.renameSync(filepath, filepath.replace(/jsconfig\.json$/, 'tsconfig.json'))
+          }
         }
       }
     )
