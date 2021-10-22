@@ -1,0 +1,4 @@
+{
+  "@include": "*",
+  "@run-at": "document-end"
+}

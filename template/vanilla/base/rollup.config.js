@@ -9,6 +9,9 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import { babel } from '@rollup/plugin-babel'
 import json from '@rollup/plugin-json'
 import alias from '@rollup/plugin-alias'
+import url from '@rollup/plugin-url'
+import postcss from 'rollup-plugin-postcss'
+import autoprefixer from 'autoprefixer'
 
 const isObject = (arg) => {
   return Object.prototype.toString.call(arg) === '[object Object]'
@@ -62,6 +65,13 @@ const commonConfigs = defineConfig({
           replacement: path.resolve(projectRootDir, 'src')
         }
       ]
+    }),
+    url({
+      destDir: 'public'
+    }),
+    postcss({
+      plugins: [autoprefixer()],
+      use: ['sass']
     })
   ]
 })
@@ -95,6 +105,7 @@ function devConfigs() {
     plugins: [
       ...commonConfigs.plugins,
       userScriptHeader({
+        metaPath: path.resolve(__dirname, 'src', 'meta.json'),
         transformHeaderContent(items) {
           const newItems = items
             .filter(([name]) => !['@supportURL', '@updateURL', '@downloadURL'].includes(name))
@@ -107,7 +118,8 @@ function devConfigs() {
             })
           userScriptHeaderContent = [...newItems]
           return newItems
-        }
+        },
+        outputFile: `${outputFile}.js`
       }),
       devEntryPlugin(`${outputFile}.js`)
     ]
@@ -157,13 +169,20 @@ function devConfigs() {
 }
 
 function prodConfigs() {
+  const outputFile = 'main.user.js'
   return defineConfig({
     input: 'src/main.js',
     output: {
-      file: `${pkg.name ?? 'userscript'}.user.js`,
+      file: outputFile,
       format: 'iife'
     },
-    plugins: [...commonConfigs.plugins, userScriptHeader()]
+    plugins: [
+      ...commonConfigs.plugins,
+      userScriptHeader({
+        metaPath: path.resolve(__dirname, 'src', 'meta.json'),
+        outputFile
+      })
+    ]
   })
 }
 
